@@ -1,7 +1,7 @@
 {
   "name": "hc-musify",
   "private": true,
-  "version": "2.3.9",
+  "version": "2.4.2",
   "description": "HC MUSIFY - Web Music Player",
   "scripts": {
     "lint": "node --check public/app.js && node --check public/player.js && node --check public/player-guard.js && node --check public/sw.js",
