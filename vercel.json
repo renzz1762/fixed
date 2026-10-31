@@ -1,6 +1,6 @@
 {
   "outputDirectory": "public",
-  "buildCommand": "echo 'No build required'",
+  "buildCommand": null,
   "installCommand": "npm install",
   "functions": {
     "api/*.js": {
@@ -91,5 +91,6 @@
         }
       ]
     }
-  ]
+  ],
+  "framework": null
 }

@@ -11,7 +11,6 @@ Semua warna diatur di `public/theme.css` (palet di `:root` paling atas). Full pl
 public/        -> website statis (HTML/CSS/JS)
 api/           -> Vercel Serverless/Edge Functions (search, lyrics, ytplay, proxy-audio, dll)
 vercel.json    -> routing + rewrite
-server.js      -> server Express, khusus buat jalanin lokal (npm run dev)
 ```
 
 ## Deploy ke Netlify atau Vercel
@@ -30,10 +29,7 @@ Kalau link malah minta login Vercel: Project -> Settings -> Deployment Protectio
 Tidak butuh environment variable.
 
 ## Lokal
-```
-npm install
-npm run dev
-```
+Tidak ada server lokal (sudah dihapus supaya Vercel tidak salah deteksi sebagai Express). Test langsung lewat deploy.
 
 ## Anti-crash pemutar (v2.2.0)
 - `public/sw.js`: stream audio TIDAK lagi lewat service worker (SW yang dimatikan browser memutus stream -> musik berhenti kalau lama).
