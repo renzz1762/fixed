@@ -1,0 +1,21 @@
+{
+  "name": "hc-musify",
+  "private": true,
+  "version": "2.3.8",
+  "description": "HC MUSIFY - Web Music Player",
+  "scripts": {
+    "lint": "node --check public/app.js && node --check public/player.js && node --check public/player-guard.js && node --check public/sw.js",
+    "dev": "node server.js",
+    "build": "echo 'No build required'",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "axios": "^1.18.1",
+    "express": "^5.2.1",
+    "web-push": "^3.6.7",
+    "@netlify/blobs": "^8.1.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
