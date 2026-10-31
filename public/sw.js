@@ -1,4 +1,4 @@
-const CACHE_STATIC_NAME = 'hc-musify-static-v33';
+const CACHE_STATIC_NAME = 'hc-musify-static-v34';
 const CACHE_DATA_NAME = 'hc-musify-api-v3';
 
 const STATIC_ASSETS = [

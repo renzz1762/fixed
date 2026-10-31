@@ -227,7 +227,7 @@ function doRecover(reason){
     var vid=S.ct.videoId||S.ct.id;
     var pos=(AU.currentTime>1)?AU.currentTime:(lastGoodPos||S.pt||0);
     // Link CDN lama kemungkinan kadaluarsa -> buang biar diambil ulang (file offline di IndexedDB tetap aman)
-    if(navigator.onLine && vid && audioUrlCache[vid]) delete audioUrlCache[vid];
+    if(navigator.onLine && vid && audioUrlCache[vid]) { delete audioUrlCache[vid]; delete audioUrlTs[vid]; savePwaCaches(); }
     if(typeof showToast==='function') showToast('Menyambungkan ulang musik...');
     loadTrack(S.ct,pos,true);
 }
@@ -349,10 +349,20 @@ function updateVolumeUI() {
     }
 }
 
-var audioUrlCache = {};
+// Link audio disimpan MAKS 40 menit (link CDN memang cepat basi). Dulu disimpan selamanya, jadi link rusak
+// ikut kebawa terus dan lagu "menyambung ulang" tanpa henti walau server sudah diperbaiki.
+var AUDIO_URL_TTL = 40 * 60 * 1000;
+var audioUrlCache = {}, audioUrlTs = {};
 try {
-    var storedAudio = localStorage.getItem('pwa_audio_cache');
-    if (storedAudio) audioUrlCache = JSON.parse(storedAudio);
+    localStorage.removeItem('pwa_audio_cache');   // format lama (tanpa umur) dibuang
+    var storedAudio = localStorage.getItem('pwa_audio_cache_v2');
+    if (storedAudio) {
+        var parsedAudio = JSON.parse(storedAudio), nowTs = Date.now();
+        Object.keys(parsedAudio).forEach(function(k){
+            var e = parsedAudio[k];
+            if (e && e.u && e.t && nowTs - e.t < AUDIO_URL_TTL) { audioUrlCache[k] = e.u; audioUrlTs[k] = e.t; }
+        });
+    }
 } catch(e) {}
 
 var lyricsCache = {};
@@ -368,8 +378,13 @@ function savePwaCaches() {
         localStorage.setItem('pwa_lyrics_cache', JSON.stringify(lyricsCache));
 
         var aKeys = Object.keys(audioUrlCache);
-        if (aKeys.length > 80) delete audioUrlCache[aKeys[0]];
-        localStorage.setItem('pwa_audio_cache', JSON.stringify(audioUrlCache));
+        if (aKeys.length > 80) { delete audioUrlTs[aKeys[0]]; delete audioUrlCache[aKeys[0]]; }
+        var audioOut = {}, nowSave = Date.now();
+        Object.keys(audioUrlCache).forEach(function(k){
+            if (!audioUrlTs[k]) audioUrlTs[k] = nowSave;
+            if (nowSave - audioUrlTs[k] < AUDIO_URL_TTL) audioOut[k] = { u: audioUrlCache[k], t: audioUrlTs[k] };
+        });
+        localStorage.setItem('pwa_audio_cache_v2', JSON.stringify(audioOut));
     } catch(e) {}
 }
 
@@ -1159,12 +1174,12 @@ async function fetchAudioAndPlay(track,resumeAt,isRetry){
             var audioUrl = audioUrlCache[vid];
             if (!audioUrl) {
                 var ytUrl=track.ytUrl||('https://youtube.com/watch?v='+vid);
-                var r=await fetch(API.ytplay,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:ytUrl})});
+                var r=await fetch(API.ytplay,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:ytUrl,fresh:!!(isRetry||isRecovering)})});
                 var d=null;
                 try{ d=await r.json(); }catch(parseErr){ d=null; }
                 if(d&&d.status&&d.result&&d.result.download&&d.result.download.audio){
                     audioUrl = d.result.download.audio;
-                    audioUrlCache[vid] = audioUrl;
+                    audioUrlCache[vid] = audioUrl; audioUrlTs[vid] = Date.now();
                     savePwaCaches();
                 } else if(!isRetry){
                     // Layanan ekstraksi kadang gagal sesaat (CDN pihak ketiga lagi sibuk/limit).
