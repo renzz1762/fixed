@@ -1,0 +1,15 @@
+{
+  "enabled": true,
+  "version": "2026-10-31-4",
+  "title": "Update HC MUSIFY",
+  "message": "Ada pembaruan baru. Info lengkap dan pengumuman berikutnya selalu diposting di Saluran WhatsApp.",
+  "items": [
+    "Banner: kepala + badan atas kelihatan, preset 1 tidak blur lagi",
+    "Profil: tombol Ganti Banner + Ganti Tema di kiri atas banner, Anti Lag di kanan atas",
+    "Tema Comic: warna merah diganti putih seperti tema Glass",
+    "Website baru di daftar: CIK STORE",
+    "Ganti Logo Aplikasi langsung berubah (real time) + pilihan logo baru"
+  ],
+  "channelUrl": "https://whatsapp.com/channel/0029Vb5aoKwEwEjpsmaQol3A",
+  "notes": null
+}

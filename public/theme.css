@@ -1,0 +1,407 @@
+/* =========================================================
+   HC MUSIFY — tema "Comic" (gaya komik HWACE: hitam + putih/kuning,
+   border hitam tebal, bayangan keras (offset), font Montserrat italic 900 +
+   outline hitam ala komik).
+
+   Cara kerja: file ini nge-remap class Tailwind gelap (text-white, bg-white/10,
+   border-white/10, dst) yang dipakai di JS jadi palet komik. Jadi JS-nya
+   nggak perlu diubah satu-satu. Full player & lirik SENGAJA tetap gelap
+   (background blur cover lagu), header Home juga tetap hitam (banner.png).
+   Palet ada di :root — tinggal ganti kalau mau warna lain.
+   ========================================================= */
+:root{
+  --bg:#0d1117; --bg-2:#11151c; --surface:#161b22; --surface-2:#1c2128; --surface-3:#21262d;
+  --line:#30363d; --red:#f4f5f7; --red-2:#d5d8de; --red-bright:#ffffff; --red-dim:#262a31; --on-red:#0b0c10;
+  --txt:#ffffff; --ink:#000000; --ink-soft:#e8eaed; --muted:#8b949e; --muted-2:#6e7681;
+  --edge:#000000;
+  --ok:#34c759; --ok-bg:rgba(52,199,89,.16); --gold:#ffc107; --danger:#ff3b30;
+  /* aksen tambahan khas komik HWACE */
+  --yellow:#ffc107; --cyan:#00e5ff; --blue:#007aff; --purple:#8b5cf6; --green:#34c759;
+  --bw:3px; --shadow-hard:4px 4px 0 #000; --shadow-hard-sm:2px 2px 0 #000;
+  /* override variabel lama di index.html */
+  --bg-color:var(--bg); --text-primary:var(--txt); --text-secondary:var(--muted);
+  --border-color:var(--edge);
+  --nm-shadow-flat:4px 4px 0 #000; --nm-shadow-flat-sm:2px 2px 0 #000;
+  --nm-shadow-inset:inset 0 0 0 transparent; --nm-shadow-inset-sm:inset 0 0 0 transparent;
+  --font-comic:'Montserrat',system-ui,sans-serif;
+}
+/* garis grid tipis kuning, bukan merah, biar kerasa komik */
+.app-bg{background-image:
+    radial-gradient(ellipse 900px 520px at 10% -8%, rgba(255,193,7,.07), transparent 60%),
+    radial-gradient(ellipse 650px 460px at 106% 14%, rgba(0,229,255,.05), transparent 60%),
+    linear-gradient(rgba(255,193,7,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,193,7,.05) 1px, transparent 1px) !important;
+}
+/* teknik outline hitam ala komik (dipakai di judul & elemen ".comic-text") */
+.comic-text,h1,h2,h3,.font-black,.chrome-text,.splash-title{
+  font-family:var(--font-comic) !important;font-weight:900 !important;font-style:italic !important;
+  text-shadow:2px 2px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000 !important;
+  letter-spacing:.01em;
+}
+.comic-box{border:var(--bw) solid #000 !important;box-shadow:var(--shadow-hard) !important;}
+.comic-box-small{border:2px solid #000 !important;box-shadow:var(--shadow-hard-sm) !important;}
+/* Full player & lirik tetap pakai variabel gelap aslinya */
+#full-player,#lyrics-overlay{
+  --bg-color:#1a1b22; --text-primary:#ffffff; --text-secondary:#a0a5b0;
+  --border-color:rgba(255,255,255,0.12);
+  --nm-shadow-flat:0 4px 6px rgba(0,0,0,0.3); --nm-shadow-flat-sm:0 2px 4px rgba(0,0,0,0.3);
+  --nm-shadow-inset:inset 0 2px 4px rgba(0,0,0,0.2); --nm-shadow-inset-sm:inset 0 1px 3px rgba(0,0,0,0.2);
+}
+
+::selection{background:rgba(255,255,255,.28);color:var(--txt);}
+html,html body{background-color:var(--bg) !important;color:var(--txt);}
+html body.font-sans{font-family:'Inter',system-ui,sans-serif !important;color:var(--txt) !important;}
+h1,h2,h3,.font-black{font-family:'Rajdhani','Bricolage Grotesque',system-ui,sans-serif;font-style:italic;font-weight:700;letter-spacing:.01em;}
+.mono{font-family:'JetBrains Mono',monospace;}
+input[type=range]{accent-color:var(--red);}
+:focus-visible{outline:3px solid var(--red);outline-offset:2px;}
+
+/* latar: krem + grid tipis merah */
+.app-bg{
+  background-color:var(--bg) !important;
+  background-image:
+    radial-gradient(ellipse 900px 520px at 10% -8%, rgba(255,255,255,.07), transparent 60%),
+    radial-gradient(ellipse 650px 460px at 106% 14%, rgba(255,255,255,.04), transparent 60%),
+    linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px) !important;
+  background-size:auto,auto,46px 46px,46px 46px !important;
+}
+
+/* ---------- SPLASH ---------- */
+#splash-screen{background:var(--bg) !important;
+  background-image:linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px) !important;
+  background-size:46px 46px !important;}
+.splash-logo-wrap{background:#000 !important;border:var(--bw) solid var(--edge) !important;box-shadow:6px 6px 0 var(--red) !important;border-radius:28px !important;}
+.splash-logo-wrap img{border-radius:20px !important;}
+.splash-title,.chrome-text{color:var(--txt) !important;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;}
+.splash-sub{color:var(--muted) !important;font-family:'JetBrains Mono',monospace;opacity:1 !important;}
+.splash-bar{background:var(--surface-3) !important;border:var(--bw) solid var(--edge);height:8px !important;border-radius:99px !important;width:140px !important;}
+.splash-bar i{background:var(--red) !important;}
+
+/* ---------- TEKS ---------- */
+.text-white:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.hover\:text-white:hover:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.text-zinc-300:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){color:var(--txt);}
+.text-white\/90:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.text-white\/80:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.text-white\/70:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){color:var(--ink-soft);}
+.text-white\/60:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.text-white\/50:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.text-\[\#a0a5b0\]:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.text-\[\#b3b3b3\]:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.text-\[\#cfd3d8\]:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){color:var(--muted);}
+.text-white\/45:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.text-white\/40:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.text-white\/30:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.text-\[\#6b7280\]:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.text-\[\#4b5563\]:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){color:var(--muted-2);}
+.text-rose-400:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.text-rose-500:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.text-red-400:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.text-red-500:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.text-red-300:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){color:#ff8a8f;}
+.text-emerald-400:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){color:var(--ok);}
+.text-amber-400:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.text-amber-300:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.text-amber-600:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){color:var(--gold);}
+.text-purple-400:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.text-indigo-400:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){color:#8da2ff;}
+.text-sky-400:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.text-cyan-400:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.text-blue-600:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){color:#7fa0ff;}input::placeholder,textarea::placeholder{color:var(--muted-2);opacity:1;}
+
+/* ---------- BACKGROUND ---------- */
+.bg-white\/5:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-white\/\[0\.04\]:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-white\/\[0\.05\]:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-white\/\[0\.06\]:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-white\/\[0\.08\]:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.hover\:bg-white\/\[0\.08\]:hover:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-black\/30:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background-color:var(--surface-2);}
+.bg-white\/10:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-white\/15:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-white\/\[0\.10\]:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-white\/\[0\.12\]:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-white\/\[0\.1\]:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-white\/\[0\.15\]:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-gray-200:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background-color:var(--surface);}
+.bg-white\/20:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-white\/25:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-white\/30:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.hover\:bg-white\/10:hover:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.hover\:bg-white\/20:hover:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.hover\:bg-white\/15:hover:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background-color:var(--red-dim);}
+.bg-white\/90:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background-color:var(--surface);}
+.bg-black\/40:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-black\/50:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-black\/60:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-black\/65:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-black\/70:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-black\/75:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-black\/80:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-black\/85:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.hover\:bg-black\/60:hover:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-zinc-900\/95:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-zinc-900\/80:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background-color:var(--surface);color:var(--txt);}
+.fixed.inset-0.bg-black\/60:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.fixed.inset-0.bg-black\/80:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.fixed.inset-0.bg-black\/50:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.fixed.inset-0.bg-black\/70:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background-color:rgba(23,16,15,.55);}
+.bg-\[\#20222c\]:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-\[\#121318\]\/95:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-\[\#121318\]:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background-color:var(--surface);}
+.bg-\[\#282b38\]:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-\[\#2e3344\]:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.hover\:bg-\[\#282b38\]:hover:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background-color:var(--surface-2);}
+.bg-\[\#343a4e\]:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.hover\:bg-\[\#343a4e\]:hover:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background-color:var(--red-dim);}
+.bg-\[\#050507\]:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-\[\#1a1b22\]:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-\[\#181922\]:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-\[\#0c0d13\]:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background-color:var(--bg);}
+.bg-\[\#1a1a1a\]:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background-color:#000;color:#fff;}
+.bg-rose-500\/20:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-red-500\/10:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-red-500\/20:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background-color:var(--red-dim);}
+.bg-emerald-500\/20:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background-color:var(--ok-bg);}
+.bg-emerald-500:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-emerald-400:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.hover\:bg-emerald-400:hover:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background-color:var(--ok);color:#fff;border:var(--bw) solid var(--edge);box-shadow:2px 2px 0 #000;}
+.bg-rose-400:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background-color:var(--red);}
+.bg-gradient-to-r:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-gradient-to-b:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-gradient-to-br:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-gradient-to-t:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background-image:none;background-color:var(--red-dim);border-color:var(--edge) !important;box-shadow:var(--shadow-hard-sm);}
+.bg-gradient-to-r.to-emerald-900\/40:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.bg-gradient-to-r.from-emerald-950\/70:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background-color:var(--ok-bg);}
+.from-\[\#050507\]:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.from-\[\#14151a\]:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){--tw-gradient-from:#0b1020 var(--tw-gradient-from-position);--tw-gradient-to:rgb(11 16 32 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to);}
+.via-\[\#050507\]\/60:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.via-\[\#14151a\]\/60:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){--tw-gradient-stops:var(--tw-gradient-from),rgba(251,249,248,.6) var(--tw-gradient-via-position),var(--tw-gradient-to);}
+
+/* ---------- TOMBOL UTAMA (bg-white + text-black => merah) ---------- */
+.bg-white.text-black:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background-color:var(--red);color:var(--on-red);border:var(--bw) solid var(--edge);box-shadow:2px 2px 0 #000;}
+.bg-white.text-black:hover:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background-color:var(--red-2);}
+.bg-white:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background-color:var(--surface);}
+.ring-white:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.ring-1:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.ring-2:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){--tw-ring-color:var(--edge);}
+.bg-amber-500\/90:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background-color:var(--gold);color:var(--txt);border:var(--bw) solid var(--edge);box-shadow:var(--shadow-hard-sm);}
+
+/* ---------- BORDER ---------- */
+.border-white\/5:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.border-white\/10:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.border-white\/15:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){border-color:var(--line);}
+.border-white\/20:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.border-white\/30:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.border-white\/40:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.border-white\/60:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.border-white:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.border-\[\#cfd3d8\]:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.border-\[\#08090d\]:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){border-color:var(--edge);}
+.border.border-white\/20:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.border.border-white\/30:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.border.border-white\/40:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.border.border-white\/60:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.border.border-white\/15:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){border-width:var(--bw);}
+.border-rose-500\/20:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.border-rose-500\/30:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.border-rose-500\/40:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){border-color:var(--red);}
+.border-emerald-500\/30:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.border-emerald-500\/40:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.border-emerald-400\/40:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){border-color:var(--ok);}
+.border-amber-400:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.border-amber-500\/20:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.border-amber-500\/30:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.border-amber-400\/50:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){border-color:var(--gold);}
+.divide-white\/5 > :not([hidden]) ~ :not([hidden]):not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.divide-white\/10 > :not([hidden]) ~ :not([hidden]):not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){border-color:var(--line);}
+
+/* ---------- SHADOW ---------- */
+.shadow-md:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.shadow-lg:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.shadow-xl:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.shadow-2xl:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){box-shadow:var(--shadow-hard-sm);}
+.drop-shadow-sm:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.drop-shadow-md:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.drop-shadow-lg:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){filter:none;}
+
+/* ---------- KOMPONEN ---------- */
+.glass:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.glass-card:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background:var(--surface);border:var(--bw) solid var(--edge);box-shadow:var(--shadow-hard-sm);color:var(--txt);}
+.glass-hover:hover:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.glass-card:hover:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background:var(--red-dim);transform:translate(-1px,-1px);box-shadow:var(--shadow-hard);border-color:var(--edge);}
+.glass-strong:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background:var(--surface) !important;border:var(--bw) solid var(--edge);box-shadow:var(--shadow-hard);color:var(--txt);}
+.glass-strong.rounded-t-3xl:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){box-shadow:0 -4px 0 #000;border-bottom:0;}
+.glass-input:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background:var(--surface);border:var(--bw) solid var(--edge);box-shadow:none;color:var(--txt);}
+.glass-input:focus-within:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.glass-input:focus:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){box-shadow:3px 3px 0 var(--red);outline:none;}
+.glass-dock:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background:var(--surface);border:var(--bw) solid var(--edge);box-shadow:var(--shadow-hard);}
+.glass-pane:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background:var(--bg);}
+.nav-blur:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background:transparent;border-top:0;box-shadow:none;}
+.btn-chrome:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background:var(--surface);color:var(--txt);border:var(--bw) solid var(--edge);box-shadow:var(--shadow-hard-sm);font-weight:700;}
+.btn-chrome:hover:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background:var(--red-dim);transform:translate(-1px,-1px);box-shadow:var(--shadow-hard);}
+.btn-chrome:active:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){transform:translate(2px,2px);box-shadow:1px 1px 0 #000;}
+.filter-tab.active:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background:var(--red) !important;color:var(--on-red) !important;box-shadow:2px 2px 0 #000 !important;border:var(--bw) solid var(--edge) !important;}
+.artist-photo:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){border:3px solid var(--edge);box-shadow:var(--shadow-hard);background:var(--surface);}
+.eq-slider:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background:var(--surface-3);box-shadow:none;}
+
+/* ---------- NAV BAWAH ---------- */
+.nav-item:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){border:var(--bw) solid transparent;}
+.nav-item.bg-white\/20:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background-color:var(--surface-2);color:var(--gold);border-color:var(--edge);box-shadow:2px 2px 0 #000;}
+.nav-item.text-white\/50:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){color:var(--muted);}
+.nav-item.text-white\/50:hover:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){color:var(--txt);background-color:var(--red-dim);}
+.nav-label:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.04em;font-weight:700;font-size:8.5px;}
+
+/* ---------- MINI PLAYER ---------- */
+#mini-player-inner{background:var(--surface) !important;border:var(--bw) solid var(--edge) !important;box-shadow:var(--shadow-hard) !important;color:var(--txt);backdrop-filter:none !important;}
+#mini-player-inner #mini-title{color:var(--txt) !important;}
+#mini-player-inner #mini-artist{color:var(--muted) !important;}
+#mini-player-inner circle:first-of-type{stroke:var(--line);}
+#mini-next-overlay{background:var(--surface) !important;border:var(--bw) solid var(--edge) !important;}
+#mini-next-overlay #mini-title-next{color:var(--txt) !important;}
+#mini-next-overlay #mini-artist-next{color:var(--muted) !important;}
+#mini-next-badge{background:var(--red) !important;color:var(--on-red) !important;border:var(--bw) solid var(--edge) !important;}
+
+/* ---------- HEADER HOME (hitam, banner.png) ---------- */
+.hc-hero{border-bottom:3px solid var(--red) !important;box-shadow:0 4px 0 #000 !important;}
+.hc-hero h1{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;letter-spacing:-.03em;color:#fff;}
+.hc-hero button.w-10{background:var(--surface) !important;color:var(--txt) !important;border:var(--bw) solid var(--edge) !important;box-shadow:2px 2px 0 var(--red) !important;}
+.hc-hero button.w-10:hover{background:var(--red-dim) !important;}
+.hc-hero .home-chip-btn{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;border:var(--bw) solid #fff !important;}
+.hc-hero .home-chip-btn.font-extrabold{background:var(--red) !important;color:var(--on-red) !important;border-color:#fff !important;box-shadow:2px 2px 0 #fff;transform:none !important;}
+
+/* ---------- GAMBAR ---------- */
+#main-area img.object-cover,#album-content img.object-cover,#artist-content img.object-cover{border:var(--bw) solid var(--edge);}
+/* FIX: foto di dalam wadah bulat (Top Artists, avatar, dll) JANGAN dikasih border sendiri.
+   Border kotak yang di-clip lingkaran itu yang bikin muncul garis putih di atas/bawah foto. Ringnya pindah ke wadah bulat. */
+#main-area .rounded-full>img,#album-content .rounded-full>img,#artist-content .rounded-full>img,
+#main-area img.rounded-full,#album-content img.rounded-full,#artist-content img.rounded-full,
+.rounded-full>img.object-cover,img.rounded-full.object-cover{border:0 !important;outline:0 !important;box-shadow:none !important;display:block;object-fit:cover;}
+#main-area .rounded-full:has(>img),#artist-content .rounded-full:has(>img){border:var(--bw) solid var(--edge) !important;background:#0a1230;}
+/* avatar profil: foto penuh, ring emas di wadah */
+.hc-avatar>img.absolute{border:0 !important;transform:scale(1.28);transform-origin:center;}
+img.hc-avatar{border:3px solid var(--gold) !important;object-fit:cover;transform:none !important;}
+
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-thumb{background:var(--edge);border-radius:99px;border:2px solid var(--bg);}
+::-webkit-scrollbar-track{background:var(--bg-2);}
+.hide-scrollbar::-webkit-scrollbar{display:none;}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important;}}
+
+
+/* =========================================================
+   FIX KETERBACAAN (v2)
+   - Header banner (Home, Cari, Library, Liked) tetap gelap -> teks putih.
+   - Spinner & equalizer (state loading/playing) dulu putih di atas putih.
+   - Tombol play/pause & ikon dikasih warna eksplisit biar nggak bisa hilang.
+   ========================================================= */
+
+/* header banner: judul + ikon putih, input kaca gelap, tombol merah */
+.hc-hero{background-color:#08090d;}
+.hc-hero h1{color:#fff !important;text-shadow:0 2px 0 rgba(0,0,0,.6);}
+.hc-hero input{color:#fff !important;background:rgba(0,0,0,.55) !important;border:var(--bw) solid #fff !important;}
+.hc-hero input::placeholder{color:rgba(255,255,255,.72) !important;opacity:1;}
+.hc-hero .bg-white.text-black{background:var(--red) !important;color:var(--on-red) !important;border:var(--bw) solid #fff !important;box-shadow:2px 2px 0 #fff;}
+.hc-hero .bg-black\/40{background:rgba(0,0,0,.55) !important;border:var(--bw) solid #fff !important;}
+.hc-hero .text-white\/70{color:rgba(255,255,255,.85) !important;}
+.hc-hero .text-blue-600,.hc-hero .text-amber-600{color:#fff !important;}
+/* tab aktif di header (Library: Playlists / Artists) */
+.hc-hero button.bg-white.text-black{font-weight:800;}
+
+/* dropdown saran pencarian: terang, teks gelap */
+#suggestions{background:var(--surface) !important;border:var(--bw) solid var(--edge) !important;box-shadow:var(--shadow-hard) !important;color:var(--txt) !important;}
+#suggestions *{color:var(--txt) !important;}
+#suggestions .text-white\/50,#suggestions .text-white\/60,#suggestions [class*="text-white/"]{color:var(--muted) !important;}
+#suggestions button:hover,#suggestions div:hover{background:var(--red-dim) !important;}
+
+/* input di halaman terang */
+input,textarea,select{color:var(--txt);}
+input.text-white,textarea.text-white{color:var(--txt) !important;}
+
+/* spinner (loading) */
+.animate-spin:not(#full-player *):not(#lyrics-overlay *){
+  border-color:var(--red) !important;border-top-color:transparent !important;
+}
+.bg-white.text-black .animate-spin:not(#full-player *){border-color:#fff !important;border-top-color:transparent !important;}
+
+/* equalizer bars (lagi diputar) */
+[class*="animate-eq"]:not(#full-player *):not(#lyrics-overlay *){background-color:var(--red) !important;}
+.bg-white.text-black [class*="animate-eq"]:not(#full-player *){background-color:#fff !important;}
+
+/* icon play/pause: warna eksplisit */
+svg.lucide-play:not(#full-player *):not(#lyrics-overlay *),
+svg.lucide-pause:not(#full-player *):not(#lyrics-overlay *){
+  color:var(--txt) !important;fill:var(--txt) !important;stroke:var(--txt) !important;
+}
+.bg-white.text-black svg.lucide-play:not(#full-player *),
+.bg-white.text-black svg.lucide-pause:not(#full-player *),
+.hc-hero svg.lucide-play,.hc-hero svg.lucide-pause{
+  color:#fff !important;fill:#fff !important;stroke:#fff !important;
+}
+/* tombol play/pause bulat ber-background terang */
+#mini-play-btn{background:var(--surface-2) !important;border:var(--bw) solid var(--edge) !important;}
+#mini-play-btn svg{color:var(--txt) !important;fill:var(--txt) !important;stroke:var(--txt) !important;}
+#mini-play-btn .animate-spin{border-color:var(--red) !important;border-top-color:transparent !important;}
+#mini-player-inner #mini-cover{border:var(--bw) solid var(--edge);}
+
+/* teks kecil/muted jangan terlalu pudar */
+.text-white\/30:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *),
+.text-white\/40:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){color:var(--muted) !important;}
+
+/* =========================================================
+   BADGE KECIL + OVERLAY UPDATE
+   ========================================================= */
+.hc-badge{display:inline-block;margin-left:6px;padding:1px 6px;border:1.5px solid var(--edge);border-radius:6px;background:var(--red-dim);
+  color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;vertical-align:middle;line-height:1.5;}
+
+#hc-update-overlay{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:rgba(23,16,15,.62);animation:hcUpdFade .2s ease-out both;}
+#hc-update-overlay.hc-upd-out{opacity:0;transition:opacity .18s;}
+.hc-upd-card{width:100%;max-width:380px;background:var(--surface);color:var(--txt);border:3px solid var(--edge);border-radius:20px;box-shadow:6px 6px 0 #000;
+  padding:18px 18px 16px;animation:hcUpdPop .28s cubic-bezier(.2,1.1,.3,1) both;max-height:88vh;overflow:auto;}
+.hc-upd-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.hc-upd-tag{background:var(--red);color:var(--on-red);border:2px solid var(--edge);border-radius:8px;padding:2px 8px;font:700 11px 'JetBrains Mono',monospace;letter-spacing:.06em;}
+.hc-upd-ver{font:600 11px 'JetBrains Mono',monospace;color:var(--muted);}
+.hc-upd-title{font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:800;font-size:22px;line-height:1.15;letter-spacing:-.02em;color:var(--txt);margin:0 0 6px;}
+.hc-upd-msg{font-size:13px;line-height:1.5;color:var(--ink-soft);margin:0 0 10px;}
+.hc-upd-list{margin:0 0 14px;padding:10px 12px 10px 28px;list-style:square;background:var(--surface-2);border:2px solid var(--line);border-radius:12px;font-size:13px;line-height:1.55;color:var(--txt);}
+.hc-upd-list li::marker{color:var(--red);}
+.hc-upd-actions{display:flex;flex-direction:column;gap:8px;}
+.hc-upd-btn{box-sizing:border-box;display:block;width:100%;text-align:center;font:700 14px 'Inter',system-ui,sans-serif;padding:11px 14px;border-radius:12px;border:2px solid var(--edge);cursor:pointer;text-decoration:none;
+  transition:transform .08s,box-shadow .08s;}
+.hc-upd-primary{background:var(--red);color:var(--on-red);box-shadow:3px 3px 0 #000;}
+.hc-upd-secondary{background:var(--surface-3);color:var(--txt);box-shadow:3px 3px 0 #000;}
+.hc-upd-ghost{background:transparent;color:var(--muted);border-color:var(--line);}
+.hc-upd-btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #000;}
+@keyframes hcUpdFade{from{opacity:0}to{opacity:1}}
+@keyframes hcUpdPop{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
+
+/* tombol tutup kecil (bg-black polos) */
+.bg-black:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){background-color:#000;color:#fff;}
+.bg-black:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *) svg{color:#fff !important;}
+
+.text-white\/45:not(#full-player *):not(#lyrics-overlay *):not(.hc-hero *){color:var(--muted) !important;}
+
+/* =========================================================
+   FIX INPUT PENCARIAN (teks yang diketik harus kelihatan)
+   Sebelumnya aturan "input.text-white => gelap" menang atas aturan header,
+   jadi teks gelap di atas kolom gelap. Sekarang spesifik per header banner.
+   ========================================================= */
+.hc-hero input,
+.hc-hero input.text-white,
+.hc-hero input[type="text"],
+.hc-hero input[type="search"],
+#view-search #search-input,
+#search-input.text-white{
+  color:#fff !important;-webkit-text-fill-color:#fff !important;caret-color:var(--red-bright);
+  background:rgba(0,0,0,.6) !important;font-weight:600;
+}
+.hc-hero input::placeholder,#search-input::placeholder{color:rgba(255,255,255,.75) !important;-webkit-text-fill-color:rgba(255,255,255,.75) !important;opacity:1;}
+.hc-hero input:-webkit-autofill{-webkit-text-fill-color:#fff !important;box-shadow:0 0 0 40px #0b1020 inset !important;}
+/* ikon kaca pembesar di dalam kolom */
+.hc-hero .text-white\/60{color:rgba(255,255,255,.8) !important;}
+
+/* cincin foto bulat: kuning + bayangan hitam keras (bukan putih) */
+.hc-avatar{border:3px solid var(--gold) !important;box-shadow:3px 3px 0 #000 !important;}
+.hc-profile-banner{border-bottom:var(--bw) solid var(--edge) !important;}

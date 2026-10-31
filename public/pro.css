@@ -1,0 +1,315 @@
+/* =========================================================
+   HC MUSIFY — "PRO" skin (dipakai tema Glass & Comic)
+   - .hc-hero  : banner SEMUA halaman, selalu rasio 16:9 (satu aturan, jadi
+                 ukurannya sama di Home/Search/Library/Offline/Liked/Profile)
+   - .pro-*    : komponen halaman Search, Library, Offline, Liked, Profile
+   Warna ikut tema lewat variable --pro-* di bawah.
+   ========================================================= */
+:root{
+  --pro-card:rgba(255,255,255,.045);
+  --pro-card-2:rgba(255,255,255,.075);
+  --pro-line:rgba(255,255,255,.10);
+  --pro-line-2:rgba(255,255,255,.20);
+  --pro-txt:#f4f5f7;
+  --pro-muted:rgba(255,255,255,.60);
+  --pro-faint:rgba(255,255,255,.38);
+  --pro-accent:#ffffff;
+  --pro-on-accent:#0b0c10;
+  --pro-like:#ff5d7a;
+  --pro-ok:#34d399;
+  --pro-cur:rgba(255,255,255,.09);
+  --pro-bw:1px;
+  --pro-shadow:0 8px 20px rgba(0,0,0,.28);
+  --pro-radius:16px;
+  --pro-seg-bg:rgba(0,0,0,.38);
+}
+html[data-theme="comic"]{
+  --pro-card:#161b22;
+  --pro-card-2:#1c2128;
+  --pro-line:#2d333b;
+  --pro-line-2:#444c56;
+  --pro-txt:#ffffff;
+  --pro-muted:#9aa4b2;
+  --pro-faint:#6e7681;
+  --pro-accent:#ffffff;
+  --pro-on-accent:#0b0c10;
+  --pro-like:#ff5d7a;
+  --pro-cur:#262a31;
+  --pro-bw:2px;
+  --pro-shadow:3px 3px 0 #000;
+  --pro-radius:14px;
+  --pro-seg-bg:#0d1117;
+}
+
+/* ---------- BANNER 16:9 (semua halaman) ----------
+   Pakai foto asli apa adanya (tanpa padding/blur tambahan). */
+.hc-hero{
+  position:relative;width:100%;box-sizing:border-box;overflow:hidden;
+  aspect-ratio:16/9;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  padding:14px 16px 12px;
+  background-color:#08090d;
+  background-image:var(--hc-banner, url('/banner.png'));
+  background-size:cover;background-position:var(--hc-banner-pos, center top);background-repeat:no-repeat;
+}
+.hc-hero::before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:linear-gradient(180deg,rgba(5,6,12,.18) 0%,rgba(5,6,12,0) 30%,rgba(5,6,12,0) 62%,rgba(5,6,12,.55) 100%);
+}
+.hc-hero>*{position:relative;z-index:1}
+/* Home: baris judul+nav di atas, chip kategori di bawah */
+#home-head{justify-content:space-between}
+#home-head .hc-top-row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+#home-head .hc-top-row h1{white-space:nowrap;text-shadow:0 2px 10px rgba(0,0,0,.55)}
+.hc-hero.hc-hero-bare{padding:0}
+.hc-hero.hc-hero-bare::before{background:linear-gradient(180deg,rgba(5,6,12,.05) 0%,rgba(5,6,12,.45) 100%)}
+.hc-hero h1{margin:0;line-height:1.05}
+.hc-hero-sub{margin:4px 0 0;font-size:12px;color:rgba(255,255,255,.72);font-weight:500}
+.hc-hero-row{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.hc-hero-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:99px;font:700 10px/1.4 'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase;
+  background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.28);color:#fff;vertical-align:middle}
+.hc-hero-badge.on{border-color:rgba(52,211,153,.6);color:#6ee7b7}
+.hc-hero-badge i{width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block}
+.hc-hero-ico{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex:none;
+  background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.26);color:#fff}
+.hc-hero-ico svg{width:18px;height:18px}
+
+/* ---------- LAYOUT HALAMAN ---------- */
+.pro-page{padding:16px 16px 28px}
+.pro-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px}
+.pro-bar-title{font:700 11px/1 'JetBrains Mono',monospace;letter-spacing:.09em;text-transform:uppercase;color:var(--pro-muted)}
+.pro-link{display:inline-flex;align-items:center;gap:6px;background:none;border:0;padding:6px 2px;cursor:pointer;
+  font:700 12px/1 Inter,system-ui,sans-serif;color:var(--pro-accent)}
+html:not([data-theme="comic"]) .pro-link{color:var(--pro-txt)}
+.pro-link svg{width:13px;height:13px;fill:currentColor;stroke:none}
+.pro-list{display:flex;flex-direction:column;gap:8px}
+.pro-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+
+/* ---------- BARIS LAGU ---------- */
+.pro-row{
+  position:relative;display:flex;align-items:center;gap:8px;padding:8px 10px 8px 8px;
+  background:var(--pro-card);border:var(--pro-bw) solid var(--pro-line);border-radius:var(--pro-radius);
+  box-shadow:var(--pro-shadow);transition:background .2s,border-color .2s,transform .12s;
+}
+.pro-row:active{transform:scale(.985)}
+.pro-row.is-cur{background:var(--pro-cur);border-color:var(--pro-accent)}
+.pro-row.is-cur::before{content:"";position:absolute;left:-1px;top:12px;bottom:12px;width:3px;border-radius:0 3px 3px 0;background:var(--pro-accent)}
+.pro-main{display:flex;align-items:center;gap:11px;flex:1 1 auto;min-width:0;background:none;border:0;padding:0;margin:0;text-align:left;color:inherit;cursor:pointer;font:inherit}
+.pro-idx{flex:none;width:20px;text-align:center;font:600 12px/1 'JetBrains Mono',monospace;color:var(--pro-faint)}
+.pro-row.is-cur .pro-idx{color:var(--pro-accent)}
+.pro-cover{flex:none;width:50px;height:50px;border-radius:11px;overflow:hidden;background:#12141a;position:relative}
+.pro-cover img,#main-area .pro-cover img.object-cover{width:100%;height:100%;object-fit:cover;display:block;border:0 !important;border-radius:0 !important;box-shadow:none !important}
+.pro-meta{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 auto}
+.pro-title{display:block;font:600 14px/1.25 Inter,system-ui,sans-serif;color:var(--pro-txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:none !important;font-style:normal !important}
+.pro-row.is-cur .pro-title{font-weight:700}
+.pro-sub{display:block;font:500 12px/1.3 Inter,system-ui,sans-serif;color:var(--pro-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pro-sub .pro-tag{color:var(--pro-faint)}
+.pro-sub .pro-warn{color:#fbbf24}
+.pro-sub .pro-ok{color:var(--pro-ok)}
+.pro-state{display:inline-block;margin-left:7px;padding:1px 6px;border-radius:6px;font:700 9px/1.5 'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase;
+  background:var(--pro-accent);color:var(--pro-on-accent);vertical-align:middle}
+
+.pro-ibtn{flex:none;width:36px;height:36px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
+  background:transparent;border:var(--pro-bw) solid var(--pro-line);color:var(--pro-muted);padding:0;transition:transform .12s,background .2s,color .2s}
+.pro-ibtn:active{transform:scale(.9)}
+.pro-ibtn svg{width:16px;height:16px}
+.pro-ibtn.is-like{color:var(--pro-like);border-color:transparent;background:color-mix(in srgb,var(--pro-like) 14%,transparent)}
+.pro-ibtn.is-like svg{fill:currentColor}
+.pro-ibtn.is-del:hover,.pro-ibtn.is-del:active{color:#f87171}
+.pro-play{flex:none;width:38px;height:38px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0;
+  background:var(--pro-accent);color:var(--pro-on-accent);border:var(--pro-bw) solid transparent;transition:transform .12s}
+html[data-theme="comic"] .pro-play{border-color:#000;box-shadow:2px 2px 0 #000}
+.pro-play:active{transform:scale(.9)}
+.pro-play svg{width:15px;height:15px;fill:currentColor;stroke:none;display:block}
+.pro-play .pro-spin{border-color:currentColor;border-top-color:transparent}
+.pro-spin{width:15px;height:15px;border:2px solid;border-radius:50%;animation:proSpin .7s linear infinite;display:block}
+@keyframes proSpin{to{transform:rotate(360deg)}}
+.pro-eq{display:flex;align-items:flex-end;justify-content:center;gap:2px;width:15px;height:15px}
+.pro-eq span{display:block;width:3px;border-radius:2px;background:currentColor;animation:proEq .8s ease-in-out infinite}
+.pro-eq span:nth-child(1){height:40%;animation-delay:-.2s}
+.pro-eq span:nth-child(2){height:90%;animation-delay:-.5s}
+.pro-eq span:nth-child(3){height:60%;animation-delay:-.05s}
+@keyframes proEq{0%,100%{transform:scaleY(.35);transform-origin:bottom}50%{transform:scaleY(1);transform-origin:bottom}}
+
+/* ---------- KARTU GRID (playlist / artist) ---------- */
+.pro-tile{position:relative;display:flex;flex-direction:column;padding:10px;cursor:pointer;
+  background:var(--pro-card);border:var(--pro-bw) solid var(--pro-line);border-radius:var(--pro-radius);box-shadow:var(--pro-shadow);transition:transform .12s,background .2s}
+.pro-tile:active{transform:scale(.97)}
+.pro-tile-img{position:relative;width:100%;aspect-ratio:1/1;border-radius:11px;overflow:hidden;background:#12141a;margin-bottom:10px}
+.pro-tile-img img,#main-area .pro-tile-img img.object-cover{width:100%;height:100%;object-fit:cover;display:block;border:0 !important;border-radius:0 !important;box-shadow:none !important}
+.pro-tile-img.is-round{border-radius:50%;width:78%;margin:2px auto 12px}
+.pro-tile-name{display:block;font:600 13px/1.25 Inter,system-ui,sans-serif;color:var(--pro-txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:none !important;font-style:normal !important}
+.pro-tile-sub{display:block;margin-top:3px;font:500 11px/1.3 Inter,system-ui,sans-serif;color:var(--pro-muted)}
+.pro-tile.is-center{align-items:center;text-align:center}
+.pro-tile-fab{position:absolute;right:8px;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;
+  background:rgba(0,0,0,.62);border:1px solid rgba(255,255,255,.3);color:#fff}
+.pro-tile-fab svg{width:14px;height:14px}
+.pro-tile-fab.play{bottom:8px;background:var(--pro-accent);color:var(--pro-on-accent);border-color:transparent}
+.pro-tile-fab.play svg{fill:currentColor}
+.pro-tile-fab.more{top:8px}
+
+/* ---------- TOMBOL / KOTAK AKSI ---------- */
+.pro-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;border-radius:12px;cursor:pointer;
+  font:700 13px/1 Inter,system-ui,sans-serif;color:var(--pro-txt);background:var(--pro-card-2);border:var(--pro-bw) solid var(--pro-line-2);transition:transform .12s}
+.pro-btn:active{transform:scale(.97)}
+.pro-btn svg{width:16px;height:16px}
+.pro-btn-block{display:flex;width:100%}
+.pro-btn-primary{background:var(--pro-accent);color:var(--pro-on-accent);border-color:transparent}
+html[data-theme="comic"] .pro-btn-primary{border-color:#000;box-shadow:3px 3px 0 #000}
+.pro-create{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;margin:0 0 16px;padding:14px;border-radius:var(--pro-radius);cursor:pointer;
+  background:transparent;border:var(--pro-bw) dashed var(--pro-line-2);color:var(--pro-txt);font:700 13px/1 Inter,system-ui,sans-serif;transition:transform .12s,background .2s}
+.pro-create:active{transform:scale(.98);background:var(--pro-card)}
+.pro-create svg{width:16px;height:16px}
+
+/* ---------- SEGMENTED TAB ---------- */
+.pro-seg{display:flex;gap:4px;padding:4px;border-radius:14px;background:var(--pro-seg-bg);border:var(--pro-bw) solid rgba(255,255,255,.18)}
+.pro-seg-btn,.filter-tab.pro-seg-btn{flex:1 1 0;display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 8px;border-radius:10px;border:0;cursor:pointer;
+  font:700 12px/1 Inter,system-ui,sans-serif;color:rgba(255,255,255,.72);background:transparent;transition:background .2s,color .2s}
+.pro-seg-btn svg{width:15px;height:15px}
+.pro-seg-btn.is-on,.filter-tab.pro-seg-btn.active{background:#fff !important;color:#0b0c10 !important;box-shadow:none !important}
+html[data-theme="comic"] .pro-seg-btn.is-on,html[data-theme="comic"] .filter-tab.pro-seg-btn.active{background:var(--pro-accent) !important;color:var(--pro-on-accent) !important}
+#filter-tabs.pro-seg{margin:16px 16px 4px;background:var(--pro-card)}
+#filter-tabs.pro-seg .pro-seg-btn{color:var(--pro-muted)}
+#filter-tabs.pro-seg .pro-seg-btn.active{background:var(--pro-accent) !important;color:var(--pro-on-accent) !important}
+html:not([data-theme="comic"]) #filter-tabs.pro-seg .pro-seg-btn.active{background:#fff !important;color:#0b0c10 !important}
+
+/* ---------- INPUT PENCARIAN (di banner) ---------- */
+.pro-search{position:relative;display:flex;align-items:center}
+.pro-search-ico{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.75);display:flex;pointer-events:none}
+.pro-search-ico svg{width:18px;height:18px}
+.pro-search input{width:100%;box-sizing:border-box;padding:13px 92px 13px 42px;border-radius:14px;outline:none;font:600 14px/1.2 Inter,system-ui,sans-serif}
+.pro-search button{position:absolute;right:6px;top:50%;transform:translateY(-50%);padding:9px 16px;border-radius:10px;border:0;cursor:pointer;font:800 12px/1 Inter,system-ui,sans-serif;
+  background:#fff;color:#0b0c10}
+.pro-suggest{margin:10px 16px 0;border-radius:14px;overflow:hidden;background:var(--pro-card-2);border:var(--pro-bw) solid var(--pro-line-2);box-shadow:var(--pro-shadow)}
+.pro-suggest>div{color:var(--pro-txt);border-bottom:1px solid var(--pro-line)}
+.pro-suggest>div:last-child{border-bottom:0}
+
+/* ---------- STATE KOSONG ---------- */
+.pro-empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding:38px 22px;border-radius:var(--pro-radius);
+  background:var(--pro-card);border:var(--pro-bw) dashed var(--pro-line-2)}
+.pro-empty-ico{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;
+  background:var(--pro-card-2);border:var(--pro-bw) solid var(--pro-line);color:var(--pro-muted)}
+.pro-empty-ico svg{width:26px;height:26px}
+.pro-empty-ico.is-like{color:var(--pro-like)}
+.pro-empty b{display:block;font:700 15px/1.3 Inter,system-ui,sans-serif;color:var(--pro-txt)}
+.pro-empty p{margin:6px 0 0;max-width:260px;font:500 12px/1.5 Inter,system-ui,sans-serif;color:var(--pro-muted)}
+.pro-empty .pro-pill{display:inline-flex;align-items:center;gap:7px;margin-top:14px;padding:8px 13px;border-radius:99px;
+  font:600 11px/1 Inter,system-ui,sans-serif;color:var(--pro-muted);background:var(--pro-card-2);border:var(--pro-bw) solid var(--pro-line)}
+.pro-empty .pro-pill svg{width:13px;height:13px}
+
+/* ---------- KARTU PROFIL / PENGATURAN ---------- */
+.pro-card{margin:0 0 12px;padding:14px;text-align:left;border-radius:var(--pro-radius);background:var(--pro-card);border:var(--pro-bw) solid var(--pro-line);box-shadow:var(--pro-shadow)}
+.pro-card-head{display:flex;align-items:center;gap:8px;margin:0 0 12px;font:700 11px/1 'JetBrains Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--pro-muted)}
+.pro-card-head>svg{width:15px;height:15px;color:var(--pro-accent);flex:none}
+html:not([data-theme="comic"]) .pro-card-head>svg{color:var(--pro-txt)}
+.pro-card-head .hc-badge{margin-left:auto}
+.pro-card-note{margin:-4px 0 12px;font:500 11.5px/1.5 Inter,system-ui,sans-serif;color:var(--pro-faint)}
+.pro-kv{display:flex;flex-direction:column}
+.pro-kv-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--pro-line);font:500 12.5px/1.2 Inter,system-ui,sans-serif}
+.pro-kv-row:first-child{padding-top:0}
+.pro-kv-row:last-child{border-bottom:0;padding-bottom:0}
+.pro-kv-row span:first-child{color:var(--pro-muted)}
+.pro-kv-row b{color:var(--pro-txt);font-weight:600}
+.pro-status{display:inline-flex;align-items:center;gap:6px;font:700 11.5px/1 Inter,system-ui,sans-serif;color:var(--pro-ok)}
+.pro-status i{width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block}
+.pro-status.off{color:var(--pro-faint)}
+.pro-clear{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--pro-line);font:500 12px/1 Inter,system-ui,sans-serif;color:var(--pro-muted)}
+.pro-clear button{display:inline-flex;align-items:center;gap:6px;background:none;border:0;padding:4px 0;cursor:pointer;font:700 12px/1 Inter,system-ui,sans-serif;color:#f87171}
+.pro-clear button svg{width:13px;height:13px}
+.pro-dev{display:flex;align-items:center;gap:12px;margin:0 0 12px}
+.pro-dev img{width:44px;height:44px;border-radius:50%;object-fit:cover;flex:none}
+.pro-dev b{display:block;font:700 14px/1.2 Inter,system-ui,sans-serif;color:var(--pro-txt)}
+.pro-dev small{display:block;margin-top:3px;font:500 12px/1.2 Inter,system-ui,sans-serif;color:var(--pro-muted)}
+.pro-fact{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:10px;background:var(--pro-card-2);font:500 12px/1.3 Inter,system-ui,sans-serif;color:var(--pro-muted)}
+.pro-fact+.pro-fact{margin-top:6px}
+.pro-fact svg{width:14px;height:14px;flex:none}
+.pro-fact span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* tombol aksi besar (notifikasi, install PWA/APK) */
+.pro-actions{display:flex;flex-direction:column;gap:8px;margin:0 0 12px}
+.pro-action{display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;padding:12px 14px;text-align:left;cursor:pointer;border-radius:var(--pro-radius);
+  background:var(--pro-card);border:var(--pro-bw) solid var(--pro-line);box-shadow:var(--pro-shadow);color:var(--pro-txt);transition:transform .12s}
+.pro-action:active{transform:scale(.98)}
+.pro-action.hidden{display:none !important}
+.pro-action-ico{flex:none;width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:var(--pro-card-2);border:var(--pro-bw) solid var(--pro-line);color:var(--pro-accent)}
+html:not([data-theme="comic"]) .pro-action-ico{color:var(--pro-txt)}
+.pro-action-ico svg{width:18px;height:18px}
+.pro-action-txt{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 auto}
+.pro-action-txt b{font:700 13.5px/1.2 Inter,system-ui,sans-serif;color:var(--pro-txt)}
+.pro-action-txt small{font:500 11.5px/1.3 Inter,system-ui,sans-serif;color:var(--pro-muted)}
+.pro-action-go{flex:none;width:16px;height:16px;color:var(--pro-faint)}
+
+/* pilihan (tema, banner, logo, anti lag) */
+.pro-opt-list{display:flex;flex-direction:column;gap:8px}
+.pro-opt{display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;padding:10px 12px;text-align:left;cursor:pointer;border-radius:12px;
+  background:var(--pro-card-2);border:var(--pro-bw) solid var(--pro-line);color:var(--pro-txt);transition:transform .12s,border-color .2s}
+.pro-opt:active{transform:scale(.98)}
+.pro-opt.is-on{border-color:var(--pro-accent)}
+html:not([data-theme="comic"]) .pro-opt.is-on{border-color:rgba(255,255,255,.55);background:rgba(255,255,255,.10)}
+.pro-opt-ico{flex:none;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--pro-card);border:var(--pro-bw) solid var(--pro-line);color:var(--pro-muted)}
+.pro-opt-ico svg{width:16px;height:16px}
+.pro-opt-thumb{flex:none;width:56px;height:32px;border-radius:8px;background-size:cover;background-position:center;border:var(--pro-bw) solid var(--pro-line)}
+.pro-opt-thumb.is-round{width:36px;height:36px;border-radius:50%}
+.pro-opt-txt{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 auto}
+.pro-opt-txt b{font:700 12.5px/1.2 Inter,system-ui,sans-serif;color:var(--pro-txt)}
+.pro-opt-txt small{font:500 11px/1.3 Inter,system-ui,sans-serif;color:var(--pro-muted)}
+.pro-opt-check{flex:none;width:17px;height:17px;color:var(--pro-accent)}
+html:not([data-theme="comic"]) .pro-opt-check{color:#fff}
+
+/* daftar website & app */
+.pro-link-item{display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;padding:10px 12px;text-align:left;cursor:pointer;border-radius:12px;
+  background:var(--pro-card-2);border:var(--pro-bw) solid var(--pro-line);color:var(--pro-txt);transition:transform .12s}
+.pro-link-item+.pro-link-item{margin-top:8px}
+.pro-link-item:active{transform:scale(.98)}
+.pro-link-item.is-soon{opacity:.7;cursor:default}
+.pro-link-ico{flex:none;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--pro-card);border:var(--pro-bw) solid var(--pro-line)}
+.pro-link-ico svg{width:16px;height:16px}
+.pro-link-txt{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 auto}
+.pro-link-txt b{font:700 12.5px/1.2 Inter,system-ui,sans-serif;color:var(--pro-txt)}
+.pro-link-txt small{font:500 11px/1.35 Inter,system-ui,sans-serif;color:var(--pro-muted)}
+.pro-link-go{flex:none;width:15px;height:15px;color:var(--pro-faint)}
+
+/* judul section di profil */
+.pro-section-title{margin:18px 0 10px;font:700 11px/1 'JetBrains Mono',monospace;letter-spacing:.09em;text-transform:uppercase;color:var(--pro-faint)}
+
+/* ---------- SKIN CSS UNTUK HASIL PENCARIAN (markup lama, class dipakai renderActive) ---------- */
+#view-search .search-song-item{
+  background:var(--pro-card) !important;border:var(--pro-bw) solid var(--pro-line) !important;border-radius:var(--pro-radius) !important;
+  box-shadow:var(--pro-shadow) !important;padding:8px 10px 8px 8px !important;gap:11px !important;
+}
+#view-search .search-song-item:has(.search-song-badge span){background:var(--pro-cur) !important;border-color:var(--pro-accent) !important}
+#view-search .search-song-item img,#main-area #view-search .search-song-item img.object-cover{width:50px !important;height:50px !important;border-radius:11px !important;border:0 !important;box-shadow:none !important}
+#view-search .search-song-title{color:var(--pro-txt) !important;font-size:14px !important;text-shadow:none !important;font-style:normal !important}
+#view-search .search-song-item p{color:var(--pro-muted) !important}
+#view-search .search-song-badge span{background:var(--pro-accent) !important;color:var(--pro-on-accent) !important;border:0 !important}
+#view-search .search-song-btn>div{box-shadow:none !important;transform:none !important}
+#view-search .search-song-btn>div:not(.bg-white){background:var(--pro-card-2) !important;color:var(--pro-txt) !important}
+#view-search .search-song-btn>div.bg-white{background:var(--pro-accent) !important;color:var(--pro-on-accent) !important}
+#view-search .search-song-btn svg,#view-search .search-song-btn i{color:inherit !important;stroke:currentColor !important}
+#view-search .search-rec-item{background:var(--pro-card) !important;border:var(--pro-bw) solid var(--pro-line) !important;border-radius:var(--pro-radius) !important;box-shadow:var(--pro-shadow) !important}
+#view-search .search-rec-title{color:var(--pro-txt) !important;text-shadow:none !important;font-style:normal !important}
+#view-search #search-recs h2{font:700 12px/1 'JetBrains Mono',monospace !important;letter-spacing:.08em;text-transform:uppercase;color:var(--pro-muted) !important;font-style:normal !important;text-shadow:none !important}
+#view-search #search-results .grid>div{background:var(--pro-card) !important;border:var(--pro-bw) solid var(--pro-line) !important;border-radius:var(--pro-radius) !important;box-shadow:var(--pro-shadow) !important}
+
+/* ---------- Profil: kartu lama yang masih pakai class .glass ---------- */
+#view-dev div.glass.rounded-2xl{background:var(--pro-card) !important;border:var(--pro-bw) solid var(--pro-line) !important;box-shadow:var(--pro-shadow) !important;border-radius:var(--pro-radius) !important}
+
+.pro-seg.hidden,.pro-suggest.hidden{display:none !important}
+#home-head{padding-bottom:12px}
+.hc-channel-btn{background:linear-gradient(135deg,rgba(255,255,255,.94),rgba(184,200,255,.88));color:#0b0c10 !important;border:1px solid rgba(255,255,255,.55);box-shadow:0 6px 16px rgba(120,150,255,.18)}
+.hc-channel-btn i,.hc-channel-btn span{color:#0b0c10 !important}
+html[data-theme="comic"] .hc-channel-btn{background:var(--pro-accent);color:var(--pro-on-accent) !important;border:var(--pro-bw) solid #000;box-shadow:var(--pro-shadow)}
+html[data-theme="comic"] .hc-channel-btn i,html[data-theme="comic"] .hc-channel-btn span{color:var(--pro-on-accent) !important}
+
+/* ---------- Profil: tombol di atas banner ---------- */
+.hc-prof-top{position:absolute;top:14px;left:16px;right:16px;display:flex;justify-content:space-between;align-items:center;gap:10px;z-index:2}
+.hc-prof-left{display:flex;align-items:center;gap:8px;min-width:0}
+.hc-pill,.hc-sq{display:inline-flex;align-items:center;justify-content:center;gap:8px;color:#fff;cursor:pointer;
+  background:rgba(0,0,0,.42);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.24);box-shadow:0 6px 16px rgba(0,0,0,.28);transition:transform .12s}
+.hc-pill:active,.hc-sq:active{transform:scale(.95)}
+.hc-pill{height:40px;padding:0 16px;border-radius:99px;font:700 11.5px/1 'JetBrains Mono',monospace;letter-spacing:.02em;white-space:nowrap}
+.hc-sq{width:40px;height:40px;border-radius:16px;flex:none}
+.hc-pill svg,.hc-sq svg{width:18px;height:18px;flex:none}
+.hc-sq.is-on{background:#fff;color:#0b0c10;border-color:#fff}
+html[data-theme="comic"] .hc-pill,html[data-theme="comic"] .hc-sq{background:var(--pro-card);border:var(--pro-bw) solid #000;box-shadow:2px 2px 0 #fff;-webkit-backdrop-filter:none;backdrop-filter:none}
+html[data-theme="comic"] .hc-sq.is-on{background:#fff;color:#0b0c10}

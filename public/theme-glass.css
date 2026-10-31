@@ -1,0 +1,171 @@
+/* =========================================================
+   HC MUSIFY — tema GLASS HITAM TRANSPARAN (default)
+   Dasar gelap ada di <style> index.html; file ini cuma mengubah
+   permukaan jadi kaca hitam transparan (rgba + blur halus).
+   Tema COMIC ada di theme.css (dipasang lewat tombol Ganti Tema).
+
+   Catatan performa: backdrop-filter HANYA dipakai di elemen yang
+   jumlahnya sedikit (nav, mini player, header, popup). Kartu lagu
+   cuma transparan tanpa blur supaya HP kentang tetap lancar.
+   ========================================================= */
+:root{
+  --g-bg:#050507;
+  --g-surface:rgba(12,13,18,.55);
+  --g-surface-2:rgba(20,22,30,.50);
+  --g-surface-hover:rgba(34,37,50,.62);
+  --g-line:rgba(255,255,255,.10);
+  --g-line-strong:rgba(255,255,255,.18);
+  --g-shadow:0 8px 28px rgba(0,0,0,.55);
+  --g-blur:blur(16px) saturate(140%);
+
+  --bg-color:rgba(12,13,18,.55);
+  --text-primary:#ffffff;
+  --text-secondary:#a9adb8;
+  --border-color:var(--g-line);
+  --nm-shadow-flat:var(--g-shadow);
+  --nm-shadow-flat-sm:0 4px 14px rgba(0,0,0,.45);
+  --nm-shadow-inset:inset 0 1px 0 rgba(255,255,255,.06);
+  --nm-shadow-inset-sm:inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+html,html body{background-color:var(--g-bg) !important;color:#fff;}
+html body.font-sans{font-family:'Inter',system-ui,sans-serif !important;}
+h1,h2,h3,.font-black{font-family:'Bricolage Grotesque','Inter',system-ui,sans-serif;letter-spacing:-.01em;}
+.mono{font-family:'JetBrains Mono',monospace;}
+
+/* ---------- latar: hitam + cahaya abu halus biar efek kaca kelihatan ---------- */
+.app-bg{
+  background-color:var(--g-bg) !important;
+  background-image:
+    radial-gradient(ellipse 620px 420px at 12% -6%, rgba(255,255,255,.10), transparent 62%),
+    radial-gradient(ellipse 560px 460px at 108% 38%, rgba(150,160,190,.09), transparent 62%),
+    radial-gradient(ellipse 620px 520px at 20% 112%, rgba(255,255,255,.06), transparent 62%) !important;
+}
+
+/* ---------- komponen kaca ---------- */
+.glass,.glass-card{
+  background:var(--g-surface) !important;
+  border:1px solid var(--g-line) !important;
+  box-shadow:var(--g-shadow) !important;
+}
+.glass-card:hover,.glass-hover:hover{
+  background:var(--g-surface-hover) !important;
+  border-color:var(--g-line-strong) !important;
+}
+.glass-strong{
+  background:rgba(10,11,16,.72) !important;
+  border:1px solid var(--g-line) !important;
+  box-shadow:var(--g-shadow) !important;
+  -webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);
+}
+.glass-input{
+  background:rgba(0,0,0,.40) !important;
+  border:1px solid var(--g-line) !important;
+  box-shadow:none !important;
+}
+.glass-input:focus-within,.glass-input:focus{border-color:rgba(255,255,255,.35) !important;}
+.glass-pane{background:transparent !important;}
+.glass-dock{
+  background:rgba(8,9,13,.62) !important;
+  border:1px solid var(--g-line-strong) !important;
+  box-shadow:0 12px 36px rgba(0,0,0,.65) !important;
+  -webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);
+}
+.nav-blur{
+  background:rgba(8,9,13,.62) !important;
+  border-top:1px solid var(--g-line) !important;
+  -webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);
+}
+.btn-chrome{
+  background:rgba(255,255,255,.08) !important;
+  border:1px solid var(--g-line-strong) !important;
+  color:#fff !important;
+  box-shadow:0 4px 14px rgba(0,0,0,.4) !important;
+}
+.btn-chrome:hover{background:rgba(255,255,255,.14) !important;}
+.btn-chrome:active{background:rgba(255,255,255,.06) !important;}
+
+/* ---------- nav bawah: tab aktif kaca terang ---------- */
+.nav-item.bg-white\/20{
+  background:rgba(255,255,255,.16) !important;
+  border:1px solid rgba(255,255,255,.22);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
+}
+
+/* ---------- mini player ---------- */
+#mini-player-inner{
+  background:rgba(8,9,13,.55) !important;
+  border:1px solid var(--g-line-strong) !important;
+  -webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);
+  box-shadow:0 10px 30px rgba(0,0,0,.6) !important;
+}
+#mini-next-overlay{background:rgba(8,9,13,.78) !important;}
+
+/* ---------- header (banner) ---------- */
+#home-head,[style*="banner.png"]{
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--g-line-strong);
+}
+
+/* ---------- popup / modal (overlay hitam + kartu kaca) ---------- */
+.bg-\[\#121318\]{background:rgba(10,11,16,.82) !important;-webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);}
+.fixed.inset-0.bg-black\/60,.fixed.inset-0.bg-black\/80{-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);}
+#suggestions{background:rgba(10,11,16,.85) !important;border:1px solid var(--g-line) !important;-webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);}
+
+/* ---------- permukaan solid bawaan -> transparan ---------- */
+.bg-\[\#20222c\],.bg-\[\#1a1b22\],.bg-\[\#181922\],.bg-\[\#0c0d13\]{background-color:var(--g-surface) !important;}
+.bg-\[\#282b38\],.bg-\[\#2e3344\]{background-color:var(--g-surface-hover) !important;}
+
+/* ---------- splash ---------- */
+#splash-screen{background:radial-gradient(circle at 50% 45%, #14151b 0%, #020203 72%) !important;}
+.splash-logo-wrap{background:rgba(255,255,255,.06) !important;border:1px solid var(--g-line-strong) !important;-webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);}
+
+/* ---------- overlay update (struktur + warna; dulu cuma ada di theme.css makanya berantakan di glass) ---------- */
+#hc-update-overlay{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:rgba(0,0,0,.62);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);animation:hcUpdFade .2s ease-out both;}
+#hc-update-overlay.hc-upd-out{opacity:0;transition:opacity .18s;}
+.hc-upd-card{width:100%;max-width:380px;background:rgba(14,15,21,.92);color:#fff;border:1px solid var(--g-line-strong);border-radius:20px;
+  box-shadow:0 20px 50px rgba(0,0,0,.7);padding:18px 18px 16px;animation:hcUpdPop .28s cubic-bezier(.2,1.1,.3,1) both;max-height:88vh;overflow:auto;
+  -webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);}
+.hc-upd-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.hc-upd-tag{background:rgba(255,255,255,.14);color:#fff;border:1px solid var(--g-line-strong);border-radius:8px;padding:2px 8px;font:700 11px 'JetBrains Mono',monospace;letter-spacing:.06em;}
+.hc-upd-ver{font:600 11px 'JetBrains Mono',monospace;color:#a9adb8;}
+.hc-upd-title{font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:800;font-size:22px;line-height:1.15;letter-spacing:-.02em;color:#fff;margin:0 0 6px;}
+.hc-upd-msg{font-size:13px;line-height:1.5;color:#cfd3d8;margin:0 0 10px;}
+.hc-upd-list{margin:0 0 14px;padding:10px 12px 10px 28px;list-style:square;background:rgba(255,255,255,.05);border:1px solid var(--g-line);border-radius:12px;font-size:13px;line-height:1.55;color:#e6e8ee;}
+.hc-upd-list li::marker{color:#fff;}
+.hc-upd-actions{display:flex;flex-direction:column;gap:8px;}
+.hc-upd-btn{box-sizing:border-box;display:block;width:100%;text-align:center;font:700 14px 'Inter',system-ui,sans-serif;padding:11px 14px;border-radius:12px;border:1px solid var(--g-line-strong);cursor:pointer;text-decoration:none;transition:transform .08s;}
+.hc-upd-primary{background:#fff;color:#000;}
+.hc-upd-secondary{background:rgba(255,255,255,.10);color:#fff;}
+.hc-upd-ghost{background:transparent;color:#a9adb8;border-color:var(--g-line);}
+.hc-upd-btn:active{transform:scale(.97);}
+@keyframes hcUpdFade{from{opacity:0}to{opacity:1}}
+@keyframes hcUpdPop{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
+
+/* ---------- badge ---------- */
+.hc-badge{display:inline-block;margin-left:6px;padding:1px 6px;border:1px solid var(--g-line-strong);border-radius:6px;background:rgba(255,255,255,.08);
+  color:#e6e8ee;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;vertical-align:middle;line-height:1.5;}
+
+/* ---------- scrollbar ---------- */
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.22);border-radius:99px;}
+::-webkit-scrollbar-track{background:transparent;}
+.hide-scrollbar::-webkit-scrollbar{display:none;}
+
+/* ---------- tombol Ganti Tema ---------- */
+.theme-switch-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+}
+
+/* HP kentang / hemat data: matiin blur kalau user minta animasi dikurangi */
+@media (prefers-reduced-motion:reduce){
+  .glass-strong,.glass-dock,.nav-blur,#mini-player-inner,#home-head,[style*="banner.png"]{-webkit-backdrop-filter:none !important;backdrop-filter:none !important;}
+}
+
+/* cincin foto bulat */
+.hc-avatar{border:3px solid rgba(255,255,255,.22);box-shadow:0 6px 18px rgba(0,0,0,.6);}
+
+/* FIX: foto bulat full, tanpa ring/border putih di dalam */
+.rounded-full>img.object-cover,img.rounded-full.object-cover{border:0 !important;outline:0 !important;display:block;object-fit:cover;}
+.hc-avatar>img.absolute{border:0 !important;transform:scale(1.28);transform-origin:center;}
