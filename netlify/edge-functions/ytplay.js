@@ -140,7 +140,7 @@ async function tryPiped(host, idMatch) {
     return { duration: formatDuration(json.duration || 0), audio: pick.url, cdn: 'piped:' + host };
 }
 
-async function getDownload(url) {
+async function getDownload(url, fresh) {
     const idMatch =
         url.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/)?.[1] ||
         url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/)?.[1] ||
@@ -149,7 +149,7 @@ async function getDownload(url) {
     if (!idMatch) return { error: 'Invalid URL or video ID' };
 
     const cached = ytCache.get(idMatch);
-    if (cached && cached.expireAt > Date.now()) return { result: cached.data };
+    if (!fresh && cached && cached.expireAt > Date.now()) return { result: cached.data };
 
     const fullUrl = 'https://www.youtube.com/watch?v=' + idMatch;
     const cdns = ['cdn405.savetube.vip', 'cdn403.savetube.vip', 'cdn401.savetube.vip'];
@@ -199,7 +199,7 @@ function isAllowedOrigin(request) {
     const referer = request.headers.get('referer') || '';
     if (selfHost && (hostOf(origin) === selfHost || hostOf(referer) === selfHost)) return true;
     if (request.headers.get('sec-fetch-site') === 'same-origin') return true;
-    return ALLOWED_HOSTS.some(h => origin.includes(h) || referer.includes(h));
+    return ALLOWED_HOSTS.concat(['hcmusify1.vercel.app', 'hcmusify.vercel.app']).some(h => origin.includes(h) || referer.includes(h));
 }
 
 const rateHits = new Map();
@@ -207,7 +207,7 @@ const RATE_WINDOW_MS = 60 * 1000;
 const RATE_MAX = 90;
 
 function isRateLimited(request) {
-    const ip = request.headers.get('x-nf-client-connection-ip') || request.headers.get('x-forwarded-for') || 'unknown';
+    const ip = (request.headers.get('x-forwarded-for') || request.headers.get('x-nf-client-connection-ip') || 'unknown').split(',')[0].trim();
     const now = Date.now();
     const rec = rateHits.get(ip);
     if (!rec || now > rec.resetAt) {
@@ -239,7 +239,7 @@ export default async (request) => {
     if (!url) return json({ status: false, message: 'Parameter query wajib diisi' }, 400, request);
 
     const debug = new URL(request.url).searchParams.get('debug') === '1';
-    const outcome = await getDownload(url);
+    const outcome = await getDownload(url, !!body.fresh);
 
     if (outcome.result?.audio) {
         return json({

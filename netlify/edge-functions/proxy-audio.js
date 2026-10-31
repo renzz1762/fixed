@@ -25,7 +25,7 @@ async function fetchUpstream(targetUrl, headers, signal) {
 }
 
 function isRateLimited(request) {
-    const ip = request.headers.get('x-nf-client-connection-ip') || request.headers.get('x-forwarded-for') || 'unknown';
+    const ip = (request.headers.get('x-forwarded-for') || request.headers.get('x-nf-client-connection-ip') || 'unknown').split(',')[0].trim();
     const now = Date.now();
     const rec = rateHits.get(ip);
     if (!rec || now > rec.resetAt) {
