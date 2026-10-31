@@ -1,7 +1,12 @@
-// Proxy audio streaming (Node function Vercel) - support Range/206 biar bisa seek.
-const { Readable } = require('stream');
-const G = require('./_guard.js');
+// Proxy audio streaming (Edge Runtime Vercel) - support Range/206 biar bisa seek.
+// Edge = stream langsung dari sumber ke pendengar (tidak ditampung di memori) dan IP-nya beda dari serverless biasa.
+export const config = { runtime: 'edge' };
+
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/149.0.0.0 Safari/537.36';
+const rateHits = new Map();
+const RATE_WINDOW_MS = 60 * 1000;
+const RATE_MAX = parseInt(process.env.RATE_MAX, 10) || 120;
+const PRIVATE_HOST = /^(localhost|.*\.(local|internal|localhost)|0\.0\.0\.0|127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|169\.254\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+|\[.*\])$/i;
 
 async function fetchUpstream(targetUrl, headers, signal) {
     let lastErr;
@@ -18,41 +23,52 @@ async function fetchUpstream(targetUrl, headers, signal) {
     throw lastErr || new Error('upstream gagal');
 }
 
-module.exports = async (req, res) => {
-    if (!G.check(req, res, { max: parseInt(process.env.RATE_MAX, 10) || 120 })) return;
-    const targetUrl = (req.query && req.query.url) || '';
-    if (!targetUrl) { res.status(400).send('Missing url parameter'); return; }
-    if (G.badTarget(targetUrl)) { res.status(400).send('Target tidak diizinkan'); return; }
+function isRateLimited(request) {
+    const ip = (request.headers.get('x-real-ip') || request.headers.get('x-forwarded-for') || 'unknown').split(',')[0].trim();
+    const now = Date.now();
+    const rec = rateHits.get(ip);
+    if (!rec || now > rec.resetAt) {
+        if (rateHits.size > 5000) { rateHits.forEach((v, k) => { if (now > v.resetAt) rateHits.delete(k); }); }
+        rateHits.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
+        return false;
+    }
+    rec.count++;
+    return rec.count > RATE_MAX;
+}
 
-    const headers = { 'User-Agent': UA };
-    if (req.headers.range) headers['Range'] = req.headers.range;
+export default async function handler(request) {
+    if (isRateLimited(request)) return new Response('Terlalu banyak request, coba lagi sebentar', { status: 429 });
+    const url = new URL(request.url);
+    const targetUrl = url.searchParams.get('url');
+    if (!targetUrl) return new Response('Missing url parameter', { status: 400 });
 
-    // putus koneksi ke CDN kalau pendengar menutup (ganti lagu / app ditutup)
-    const ctrl = new AbortController();
-    res.on('close', () => { if (!res.writableEnded) ctrl.abort(); });
-
-    let upstream;
-    try { upstream = await fetchUpstream(targetUrl, headers, ctrl.signal); }
-    catch (err) { console.log('[AUDIO] fetch gagal: ' + err.message); if (!res.headersSent) res.status(502).send('Proxy error: ' + err.message); return; }
-
-    const ct = (upstream.headers.get('content-type') || '').toLowerCase();
-    try { console.log('[AUDIO] upstream status=' + upstream.status + ' host=' + new URL(targetUrl).host + ' ct=' + ct + ' range=' + (req.headers.range || '-')); } catch (e) {}
-    if (/^(text\/|application\/(json|xml|javascript))/.test(ct)) {
-        try { await upstream.body?.cancel(); } catch (e) {}
-        res.status(415).send('Tipe konten tidak diizinkan');
-        return;
+    let parsed;
+    try { parsed = new URL(targetUrl); } catch (e) { return new Response('Invalid url parameter', { status: 400 }); }
+    if (parsed.protocol !== 'https:' || PRIVATE_HOST.test(parsed.hostname) || parsed.username || parsed.password) {
+        return new Response('Target tidak diizinkan', { status: 400 });
     }
 
+    const upstreamHeaders = { 'User-Agent': UA };
+    const range = request.headers.get('range');
+    if (range) upstreamHeaders['Range'] = range;
+
+    let upstream;
+    try { upstream = await fetchUpstream(targetUrl, upstreamHeaders, request.signal); }
+    catch (err) { return new Response('Proxy error: ' + err.message, { status: 502 }); }
+
+    const ct = (upstream.headers.get('content-type') || '').toLowerCase();
+    console.log('[AUDIO] upstream status=' + upstream.status + ' host=' + parsed.host + ' ct=' + ct + ' range=' + (range || '-'));
+    if (/^(text\/|application\/(json|xml|javascript))/.test(ct)) {
+        try { await upstream.body?.cancel(); } catch (e) {}
+        return new Response('Sumber balas halaman web, bukan audio', { status: 502 });
+    }
+
+    const respHeaders = new Headers();
     ['content-type', 'content-length', 'accept-ranges', 'content-range', 'etag', 'last-modified'].forEach((h) => {
         const v = upstream.headers.get(h);
-        if (v) res.setHeader(h, v);
+        if (v) respHeaders.set(h, v);
     });
-    if (!upstream.headers.get('accept-ranges')) res.setHeader('accept-ranges', 'bytes');
-    res.setHeader('cache-control', 'private, no-store');
-    res.statusCode = upstream.status;
-
-    if (!upstream.body) { res.end(); return; }
-    const stream = Readable.fromWeb(upstream.body);
-    stream.on('error', () => { try { res.end(); } catch (e) {} });
-    stream.pipe(res);
-};
+    if (!respHeaders.has('accept-ranges')) respHeaders.set('accept-ranges', 'bytes');
+    respHeaders.set('cache-control', 'private, no-store');
+    return new Response(upstream.body, { status: upstream.status, headers: respHeaders });
+}

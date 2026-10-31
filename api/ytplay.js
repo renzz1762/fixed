@@ -1,223 +1,287 @@
-const G = require('./_guard.js');
-const axios = require('axios');
-const crypto = require('crypto');
+// HC MUSIFY - /api/ytplay versi EDGE untuk Vercel (cermin dari edge function Netlify yang terbukti jalan).
+// Kenapa edge: versi Node (AWS iad1) diblok sumber audio (CDN balas halaman web, bukan audio).
+// Edge jalan dari lokasi terdekat pengguna & IP beda. Ditambah: tiap kandidat link DICEK dulu
+// (harus benar-benar audio, bukan HTML) sebelum dikirim ke pemutar, jadi provider yang diblok otomatis dilewati.
+export const config = { runtime: 'edge' };
 
-// Memory cache for audio stream URLs (valid 1.5 hours)
-const ytCache = new Map();
 const CACHE_TTL = 90 * 60 * 1000;
+const ytCache = new Map();
 
-// Second provider (vidssave) races alongside the savetube CDNs below.
-// It returns a ready-to-use googlevideo.com URL directly, no AES decrypt needed.
-async function tryVidssave(fullUrl, idMatch, signal) {
-  const api = axios.create({
-    headers: {
-      "content-type": "application/x-www-form-urlencoded",
-      "origin": "https://vidssave.com",
-      "referer": "https://vidssave.com/",
-      "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-      "accept": "application/json, text/plain, */*"
-    },
-    timeout: 9000,
-    signal
-  });
+function hexToBytes(hex) {
+    const bytes = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < hex.length; i += 2) {
+        bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
+    }
+    return bytes;
+}
 
-  const params = new URLSearchParams({
-    auth: process.env.VIDSSAVE_AUTH || "20250901majwlqo",
-    domain: "api-ak.vidssave.com",
-    origin: "source",
-    link: fullUrl
-  });
+function base64ToBytes(b64) {
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes;
+}
 
-  const res = await api.post("https://api.vidssave.com/api/contentsite_api/media/parse", params.toString());
-  const data = res?.data?.data;
-  if (!data) {
-    throw new Error(`No data from vidssave — raw response: ${JSON.stringify(res.data).slice(0, 300)}`);
-  }
+async function aesCbcDecrypt(base64Data, keyHex) {
+    const encrypted = base64ToBytes(base64Data);
+    const iv = encrypted.slice(0, 16);
+    const ciphertext = encrypted.slice(16);
 
-  // Prefer medium quality (128KBPS) for faster load; fall back to whatever's there.
-  const audioList = (data.resources || []).filter(r => r.type === "audio" && r.download_url);
-  const pick = audioList.find(r => r.quality === "128KBPS") || audioList[0];
-  if (!pick) throw new Error("No audio resource from vidssave");
+    const keyBytes = hexToBytes(keyHex);
+    const cryptoKey = await crypto.subtle.importKey(
+        'raw', keyBytes, { name: 'AES-CBC' }, false, ['decrypt']
+    );
+    const decrypted = await crypto.subtle.decrypt({ name: 'AES-CBC', iv }, cryptoKey, ciphertext);
+    return new TextDecoder().decode(decrypted);
+}
 
-  return {
-    duration: `${Math.floor(data.duration / 60)}:${(data.duration % 60).toString().padStart(2, "0")}`,
-    audio: pick.download_url,
-    cdn: "vidssave"
-  };
+function formatDuration(seconds) {
+    return `${Math.floor(seconds / 60)}:${(Math.floor(seconds) % 60).toString().padStart(2, '0')}`;
+}
+
+async function fetchJson(url, opts, timeoutMs) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        const res = await fetch(url, { ...opts, signal: controller.signal });
+        const text = await res.text();
+        let data;
+        try { data = JSON.parse(text); } catch { data = null; }
+        if (!res.ok) {
+            const err = new Error(`HTTP ${res.status}`);
+            err.status = res.status;
+            err.body = data || text;
+            throw err;
+        }
+        return data;
+    } finally {
+        clearTimeout(timer);
+    }
+}
+
+async function tryVidssave(fullUrl) {
+    const params = new URLSearchParams({
+        auth: process.env.VIDSSAVE_AUTH || '20250901majwlqo',
+        domain: 'api-ak.vidssave.com',
+        origin: 'source',
+        link: fullUrl
+    });
+
+    const json = await fetchJson('https://api.vidssave.com/api/contentsite_api/media/parse', {
+        method: 'POST',
+        headers: {
+            'content-type': 'application/x-www-form-urlencoded',
+            'origin': 'https://vidssave.com',
+            'referer': 'https://vidssave.com/',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            'accept': 'application/json, text/plain, */*'
+        },
+        body: params.toString()
+    }, 9000);
+
+    const data = json?.data;
+    if (!data) throw new Error(`No data from vidssave — raw: ${JSON.stringify(json).slice(0, 300)}`);
+
+    const audioList = (data.resources || []).filter(r => r.type === 'audio' && r.download_url);
+    const pick = audioList.find(r => r.quality === '128KBPS') || audioList[0];
+    if (!pick) throw new Error('No audio resource from vidssave');
+
+    return { duration: formatDuration(data.duration), audio: pick.download_url, cdn: 'vidssave' };
+}
+
+async function tryCdn(cdn, fullUrl, idMatch) {
+    const infoJson = await fetchJson(`https://${cdn}/v2/info`, {
+        method: 'POST',
+        headers: {
+            'content-type': 'application/json',
+            'origin': 'https://yt.savetube.me',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+        },
+        body: JSON.stringify({ url: fullUrl })
+    }, 9000);
+
+    const encryptedData = infoJson?.data;
+    if (!encryptedData) throw new Error(`No data from ${cdn}`);
+
+    const decryptedText = await aesCbcDecrypt(encryptedData, 'C5D58EF67A7584E4A29F6C35BBC4EB12');
+    const decrypted = JSON.parse(decryptedText);
+
+    const downloadJson = await fetchJson(`https://${cdn}/download`, {
+        method: 'POST',
+        headers: {
+            'content-type': 'application/json',
+            'origin': 'https://yt.savetube.me',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+        },
+        body: JSON.stringify({ id: idMatch, downloadType: 'audio', quality: '128', key: decrypted.key })
+    }, 9000);
+
+    const audioUrl = downloadJson?.data?.downloadUrl || downloadJson?.downloadUrl;
+    if (!audioUrl) throw new Error(`No audio URL from ${cdn}`);
+
+    return { duration: formatDuration(decrypted.duration), audio: audioUrl, cdn };
+}
+
+// Provider cadangan (best effort): instance Piped publik. Dipakai kalau savetube/vidssave lagi mati/diblok.
+const PIPED_HOSTS = ['pipedapi.kavin.rocks', 'pipedapi.adminforge.de', 'api.piped.private.coffee'];
+async function tryPiped(host, idMatch) {
+    const json = await fetchJson(`https://${host}/streams/${idMatch}`, {
+        headers: { 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36' }
+    }, 8000);
+    const list = (json?.audioStreams || []).filter(a => a.url && !a.videoOnly);
+    list.sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0));
+    const pick = list.find(a => /mp4|m4a/.test(a.mimeType || '') && (a.bitrate || 0) <= 160000) || list[0];
+    if (!pick) throw new Error('No audio stream from ' + host);
+    return { duration: formatDuration(json.duration || 0), audio: pick.url, cdn: 'piped:' + host };
+}
+
+// Cek link audio: harus benar-benar audio (bukan halaman HTML) dan bisa dibuka dari edge ini.
+const PROBE_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/149.0.0.0 Safari/537.36';
+async function verifyAudio(result) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 6000);
+    try {
+        const r = await fetch(result.audio, { headers: { 'User-Agent': PROBE_UA, 'Range': 'bytes=0-1' }, redirect: 'follow', signal: controller.signal });
+        const ct = (r.headers.get('content-type') || '').toLowerCase();
+        try { await r.body?.cancel(); } catch {}
+        if (r.status >= 400) throw new Error('link audio status ' + r.status);
+        if (/^(text\/|application\/(json|xml|javascript))/.test(ct)) throw new Error('link audio balas halaman web (' + ct + ')');
+        return result;
+    } finally { clearTimeout(timer); }
 }
 
 async function getDownload(url) {
-  const idMatch = [
-    /youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
-    /youtu\.be\/([a-zA-Z0-9_-]{11})/
-  ].find(p => p.test(url))?.exec(url)?.[1] || (url.length === 11 ? url : null);
+    const idMatch =
+        url.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/)?.[1] ||
+        url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/)?.[1] ||
+        (url.length === 11 ? url : null);
 
-  if (!idMatch) {
-    console.error("Invalid URL or video ID:", url);
-    return null;
-  }
+    if (!idMatch) return { error: 'Invalid URL or video ID' };
 
-  // Check cache first
-  const cached = ytCache.get(idMatch);
-  if (cached && cached.expireAt > Date.now()) {
-    console.log(`[EXTRACT] Cache hit for video ID: ${idMatch}`);
-    return cached.data;
-  }
+    const cached = ytCache.get(idMatch);
+    if (cached && cached.expireAt > Date.now()) return { result: cached.data };
 
-  const fullUrl = "https://www.youtube.com/watch?v=" + idMatch;
-  const cdns = ["cdn405.savetube.vip", "cdn403.savetube.vip", "cdn401.savetube.vip"];
+    const fullUrl = 'https://www.youtube.com/watch?v=' + idMatch;
+    const cdns = ['cdn405.savetube.vip', 'cdn403.savetube.vip', 'cdn401.savetube.vip'];
 
-  // Race all CDNs in parallel instead of looping sequentially.
-  // Sequential (3 cdn x 2 attempts x 25s) could take up to 150s, way past
-  // Netlify's ~30s hard function timeout. Racing them means total wall time
-  // is bounded by the single slowest attempt (capped below), not the sum.
-  const PER_CDN_TIMEOUT = 20000; // ms — temporarily raised to confirm whether savetube's
-                                  // /download step is truly blocked or just very slow
-  const controller = new AbortController();
+    const HEAD_START_MS = 200;
+    const delay = (ms) => new Promise(r => setTimeout(r, ms));
 
-  async function tryCdn(cdn) {
-    const api = axios.create({
-      headers: {
-        "content-type": "application/json",
-        "origin": "https://yt.savetube.me",
-        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-      },
-      timeout: PER_CDN_TIMEOUT,
-      signal: controller.signal
+    const label = (p, promise) => promise.then(verifyAudio).catch(err => {
+        const detail = err.body ? `HTTP ${err.status}: ${JSON.stringify(err.body).slice(0, 200)}` : err.message;
+        throw new Error(`${p}: ${detail}`);
     });
 
-    const infoResponse = await api.post(`https://${cdn}/v2/info`, { url: fullUrl }).catch(err => {
-      if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
-        throw new Error(`${cdn} unreachable/timeout (likely dead CDN)`);
-      }
-      throw err;
-    });
-    const encryptedData = infoResponse?.data?.data;
-    if (!encryptedData) throw new Error(`No data from ${cdn}`);
-
-    const encrypted = Buffer.from(encryptedData, "base64");
-    const decipher = crypto.createDecipheriv("aes-128-cbc",
-      Buffer.from("C5D58EF67A7584E4A29F6C35BBC4EB12", "hex"),
-      encrypted.slice(0, 16)
-    );
-
-    const decryptedBuffer = Buffer.concat([
-      decipher.update(encrypted.slice(16)),
-      decipher.final()
-    ]);
-
-    const decrypted = JSON.parse(decryptedBuffer.toString());
-    const downloadRes = await api.post(`https://${cdn}/download`, {
-      id: idMatch,
-      downloadType: "audio",
-      quality: "128",
-      key: decrypted.key
-    });
-
-    const audioUrl = downloadRes.data?.data?.downloadUrl || downloadRes.data?.downloadUrl;
-    if (!audioUrl) throw new Error(`No audio URL from ${cdn}`);
-
-    return {
-      duration: `${Math.floor(decrypted.duration / 60)}:${(decrypted.duration % 60).toString().padStart(2, "0")}`,
-      audio: audioUrl,
-      cdn
-    };
-  }
-
-  // Small head start for vidssave (fastest/lightest provider) — everyone still
-  // races in parallel via Promise.any, this just gives vidssave a ~200ms lead
-  // so it wins by default when healthy, without turning this into sequential fallback.
-  const HEAD_START_MS = 200;
-  const delay = (ms) => new Promise(r => setTimeout(r, ms));
-
-  // Provider cadangan (best effort): Piped publik, dipakai kalau savetube/vidssave mati/diblok.
-  const pipedHosts = ["pipedapi.kavin.rocks", "pipedapi.adminforge.de", "api.piped.private.coffee"];
-  const tryPiped = async (host) => {
-    const r = await axios.get(`https://${host}/streams/${idMatch}`, { timeout: 8000, signal: controller.signal, headers: { "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36" } });
-    const list = (r.data?.audioStreams || []).filter(a => a.url && !a.videoOnly).sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0));
-    const pick = list.find(a => /mp4|m4a/.test(a.mimeType || "") && (a.bitrate || 0) <= 160000) || list[0];
-    if (!pick) throw new Error("No audio stream from " + host);
-    const d = r.data.duration || 0;
-    return { duration: `${Math.floor(d / 60)}:${(d % 60).toString().padStart(2, "0")}`, audio: pick.url, cdn: "piped:" + host };
-  };
-
-  try {
     const racers = [
-      tryVidssave(fullUrl, idMatch, controller.signal).catch(err => {
-        const detail = err?.response ? `HTTP ${err.response.status}: ${JSON.stringify(err.response.data)}` : err.message;
-        console.error(`[EXTRACT] vidssave failed:`, detail);
-        err.__provider = 'vidssave';
-        err.__detail = detail;
-        throw err;
-      }),
-      ...pipedHosts.map(h => delay(1500).then(() => tryPiped(h)).catch(err => { err.__provider = h; err.__detail = err.message; throw err; })),
-      ...cdns.map(cdn =>
-        delay(HEAD_START_MS).then(() => tryCdn(cdn)).catch(err => {
-          const detail = err?.response ? `HTTP ${err.response.status}: ${JSON.stringify(err.response.data)}` : err.message;
-          console.error(`[EXTRACT] ${cdn} failed:`, detail);
-          err.__provider = cdn;
-          err.__detail = detail;
-          throw err;
-        })
-      )
+        label('vidssave', tryVidssave(fullUrl)),
+        ...cdns.map(cdn => label(cdn, delay(HEAD_START_MS).then(() => tryCdn(cdn, fullUrl, idMatch)))),
+        ...PIPED_HOSTS.map(h => label(h, delay(1500).then(() => tryPiped(h, idMatch))))
     ];
 
-    const result = await Promise.any(racers);
-
-    // Winner found, stop the losing in-flight requests so they don't
-    // keep the function/connections alive uselessly.
-    controller.abort();
-
-    console.log(`[EXTRACT] Winner: ${result.cdn}`);
-    ytCache.set(idMatch, { data: result, expireAt: Date.now() + CACHE_TTL });
-    return result;
-  } catch (aggregateErr) {
-    const details = (aggregateErr?.errors || []).map(e => `${e.__provider}: ${e.__detail || e.message}`);
-    console.error("[EXTRACT] All CDNs failed:", details.join(" | "));
-    const notFoundErr = new Error("All providers failed");
-    notFoundErr.__details = details;
-    throw notFoundErr;
-  }
+    try {
+        const result = await Promise.any(racers);
+        ytCache.set(idMatch, { data: result, expireAt: Date.now() + CACHE_TTL });
+        return { result };
+    } catch (aggregateErr) {
+        const details = (aggregateErr.errors || []).map(e => e.message);
+        return { errors: details };
+    }
 }
 
-const __handler = async (req, res) => {
-    if (req.method === 'OPTIONS') { res.status(200).end(); return; }
-    if (req.method !== 'POST') { res.status(405).json({ status: false, message: 'Method not allowed' }); return; }
+// ---- PROTEKSI: origin/referer check + rate limit per IP ----
+// Endpoint ini yang paling "berharga" buat di-scrape (ekstraksi audio YouTube
+// gratis), makanya paling penting dikasih pagar. CORS lama '*' berarti situs
+// LAIN bisa manggil endpoint ini langsung dari browser mereka dan numpang
+// jadi backend gratisan buat situs mereka sendiri.
+// Domain TIDAK di-hardcode lagi: request dianggap sah kalau datang dari host website ini sendiri
+// (domain netlify.app apa pun, domain custom, dst). Opsional: isi env ALLOWED_ORIGIN di Netlify
+// (pisah koma) kalau mau mengizinkan domain lain juga.
+const ALLOWED_HOSTS = (process.env.ALLOWED_HOSTS || '')
+    .split(',').map(s => s.trim()).filter(Boolean);
 
-    let body = req.body;
-    if (typeof body === 'string') { try { body = JSON.parse(body); } catch (e) { body = {}; } }
-    body = body || {};
+function hostOf(u) {
+    try { return new URL(u).host; } catch { return ''; }
+}
 
-    const url = (body.query || body.url || '').trim();
-    if (!url) { res.status(400).json({ status: false, message: 'Parameter query wajib diisi' }); return; }
+function isAllowedOrigin(request) {
+    const selfHost = (request.headers.get('x-forwarded-host') || request.headers.get('host') || hostOf(request.url) || '').split(',')[0].trim();
+    const origin = request.headers.get('origin') || '';
+    const referer = request.headers.get('referer') || '';
+    if (selfHost && (hostOf(origin) === selfHost || hostOf(referer) === selfHost)) return true;
+    if (request.headers.get('sec-fetch-site') === 'same-origin') return true;
+    return ALLOWED_HOSTS.some(h => origin.includes(h) || referer.includes(h));
+}
 
-    console.log(`[EXTRACT] Starting extraction for: ${url}`);
-    const debug = req.query?.debug === '1';
+const rateHits = new Map();
+const RATE_WINDOW_MS = 60 * 1000;
+const RATE_MAX = 90;
 
-    try {
-        let audioData = await getDownload(url);
+function isRateLimited(request) {
+    const ip = (request.headers.get('x-real-ip') || request.headers.get('x-forwarded-for') || 'unknown').split(',')[0].trim();
+    const now = Date.now();
+    const rec = rateHits.get(ip);
+    if (!rec || now > rec.resetAt) {
+        rateHits.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
+        return false;
+    }
+    rec.count++;
+    return rec.count > RATE_MAX;
+}
 
-        if (audioData && audioData.audio) {
-            console.log("[EXTRACT] Success");
-            return res.status(200).json({
-                status: true,
-                result: {
-                    duration: audioData.duration || null,
-                    download: { audio: audioData.audio }
-                }
-            });
-        }
-    } catch (err) {
-        console.error("[EXTRACT] All providers failed:", err.__details?.join(" | ") || err.message);
-        return res.status(503).json({
-            status: false,
-            error: "Media extraction services are currently overloaded. Please try another track.",
-            ...(debug ? { debug: err.__details || [err.message] } : {})
-        });
+export default async (request) => {
+    if (request.method === 'OPTIONS') {
+        return new Response(null, { status: 200, headers: corsHeaders(request) });
+    }
+    if (request.method !== 'POST') {
+        return json({ status: false, message: 'Method not allowed' }, 405, request);
+    }
+    if (!isAllowedOrigin(request)) {
+        return json({ status: false, message: 'Access denied: Cross-origin requests from external domains are disabled.' }, 403, request);
+    }
+    if (isRateLimited(request)) {
+        return json({ status: false, message: 'Terlalu banyak request, coba lagi sebentar' }, 429, request);
     }
 
-    console.error("[EXTRACT] All methods failed");
-    res.status(503).json({ status: false, error: "Media extraction services are currently overloaded. Please try another track." });
+    let body;
+    try { body = await request.json(); } catch { body = {}; }
+
+    const url = (body.query || body.url || '').trim();
+    if (!url) return json({ status: false, message: 'Parameter query wajib diisi' }, 400, request);
+
+    const debug = new URL(request.url).searchParams.get('debug') === '1';
+    const outcome = await getDownload(url);
+
+    if (outcome.result?.audio) {
+        return json({
+            status: true,
+            result: {
+                duration: outcome.result.duration || null,
+                download: { audio: outcome.result.audio }
+            }
+        }, 200, request);
+    }
+
+    return json({
+        status: false,
+        error: 'Media extraction services are currently overloaded. Please try another track.',
+        ...(debug ? { debug: outcome.errors || [outcome.error] } : {})
+    }, 503, request);
 };
 
-module.exports = G.wrap(__handler);
+function corsHeaders(request) {
+    const origin = request && request.headers.get('origin');
+    return {
+        'access-control-allow-origin': (origin && isAllowedOrigin(request)) ? origin : (request ? new URL(request.url).origin : 'null'),
+        'access-control-allow-headers': 'Content-Type, Authorization, X-Requested-With',
+        'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD'
+    };
+}
+
+function json(obj, status = 200, request = null) {
+    return new Response(JSON.stringify(obj), {
+        status,
+        headers: { 'content-type': 'application/json', ...corsHeaders(request) }
+    });
+}
+
+
